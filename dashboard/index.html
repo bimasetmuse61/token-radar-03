@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Token Radar — radar-4: pre-token protocols priced by scale-matched peers, with evidence grades</title>
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <div class="top-row">
+      <p class="kicker">TOKEN RADAR &middot; MODEL RADAR-4 &middot; SNAPSHOT <span id="asof">—</span></p>
+      <p class="top-note">Implied values are this radar&rsquo;s own claim. Nothing here predicts whether or when a token is issued.</p>
+    </div>
+    <h1>Pre-token protocols, priced by the launches most like them</h1>
+    <p class="model-line"><strong>radar-4:</strong> implied = TVL &times; multiple &times; growth &times; maturity &times; breadth. The multiple is the median mcap/TVL of the category&rsquo;s trading peers, <em>weighted toward peers of the protocol&rsquo;s own size</em>, with exchange tokens and wrapped-asset mirrors excluded and outliers trimmed; the band spans the weighted P25&ndash;P75 and widens when the snapshot leaves a field unreported. Every row carries an evidence grade.</p>
+    <dl class="stats">
+      <div><dt>Protocols ranked</dt><dd id="stat-rows">—</dd></div>
+      <div><dt>Watchlist covered</dt><dd id="stat-watch">—</dd></div>
+      <div><dt>Early finds below the floor</dt><dd id="stat-early">—</dd></div>
+      <div><dt>Top implied value</dt><dd id="stat-top">—</dd></div>
+      <div><dt>Global peer multiple</dt><dd id="stat-global">—</dd></div>
+    </dl>
+    <div class="movers" aria-label="Fastest risers this week">
+      <span class="movers-label">Fastest risers, 7d TVL</span>
+      <span id="movers"></span>
+    </div>
+  </div>
+</header>
+<main class="wrap">
+  <section class="controls" aria-label="Board controls">
+    <label>Search <input id="q" type="search" placeholder="Name or slug…" autocomplete="off"></label>
+    <label>Category <select id="cat"><option value="">All categories</option></select></label>
+    <label>Chain <select id="chain"><option value="">All chains</option></select></label>
+    <label>Evidence <select id="ev">
+      <option value="">Any grade</option>
+      <option value="A">A — strong peer evidence</option>
+      <option value="B">B — fair evidence</option>
+      <option value="C">C — thin evidence</option>
+    </select></label>
+    <label>Sort by <select id="sort">
+      <option value="value">Implied value (high first)</option>
+      <option value="tvl">TVL (high first)</option>
+      <option value="growth">7-day growth (high first)</option>
+      <option value="age">Age (oldest first)</option>
+      <option value="band">Widest value band first</option>
+      <option value="evidence">Strongest evidence first</option>
+      <option value="name">Name (A–Z)</option>
+    </select></label>
+    <label class="check"><input id="watch" type="checkbox"> Watchlist only</label>
+    <label class="check"><input id="live-toggle" type="checkbox"> Already-trading view</label>
+    <p class="count" id="count" aria-live="polite"></p>
+  </section>
+
+  <section aria-label="Ranked board">
+    <table class="board">
+      <thead><tr>
+        <th class="sortable" data-sort="value" title="Sort by implied value">#</th><th>Protocol</th><th>Category</th><th>Chains</th>
+        <th class="num sortable" data-sort="tvl" title="Sort by TVL">TVL</th><th class="num sortable" data-sort="growth" title="Sort by 7-day growth">7d</th><th class="num sortable" data-sort="age" title="Sort by age">Age</th>
+        <th title="Evidence grade: effective peers and data completeness">Evidence</th>
+        <th class="num implied-head sortable" data-sort="value" title="Sort by implied value">Implied value <span class="band-key">band = weighted peer P25&ndash;P75</span></th>
+      </tr></thead>
+      <tbody id="rows"></tbody>
+    </table>
+    <p class="hint">Click any row for its value drivers, the peers that priced it (with their weights), and its farm plan with a full budget. The dot on each band is the base value; the bar runs from the low (P25 multiple) to the high (P75 multiple).</p>
+  </section>
+
+  <section id="detail" class="detail" aria-label="Protocol detail" hidden>
+    <button id="detail-close" type="button">Close detail</button>
+    <h2 id="d-name">—</h2>
+    <p id="d-meta" class="meta">—</p>
+    <div class="band-big" aria-label="Valuation band">
+      <div class="band-track"><i id="d-band-fill"></i><b id="d-band-dot"></b></div>
+      <div class="band-labels"><span id="d-low">—</span><span id="d-base">—</span><span id="d-high">—</span></div>
+      <p class="band-note" id="d-band-note">—</p>
+    </div>
+    <div class="d-grid">
+      <div>
+        <h3>How the value was built</h3>
+        <dl id="d-model" class="model"></dl>
+        <h3>The peers that priced it</h3>
+        <table class="peers">
+          <thead><tr><th>Peer</th><th class="num">Mcap</th><th class="num">TVL</th><th class="num">Mcap/TVL</th><th class="num">Weight</th></tr></thead>
+          <tbody id="d-peers"></tbody>
+        </table>
+        <p class="fine" id="d-peers-note">—</p>
+      </div>
+      <div>
+        <h3>Farm plan — <span id="d-plan-kind">—</span></h3>
+        <p class="plan-budget" id="d-budget">—</p>
+        <ol id="d-farm" class="farm"></ol>
+      </div>
+    </div>
+  </section>
+
+  <section id="live" class="live" aria-label="Already trading" hidden>
+    <h2>Already trading — shown at the market&rsquo;s own values, never ranked</h2>
+    <p>These protocols record a token, so radar-4 does not rank them. Their market caps are the market&rsquo;s own, and their mcap/TVL ratios — grouped by category, cleaned of exchange tokens and wrapped-asset mirrors, trimmed of outliers and weighted by scale — are the peer evidence that prices the board above. A pre-token protocol is never mixed into this list.</p>
+    <table class="board">
+      <thead><tr><th>Protocol</th><th>Category</th><th class="num">TVL</th><th class="num">Market cap</th><th class="num">Mcap / TVL</th></tr></thead>
+      <tbody id="live-rows"></tbody>
+    </table>
+  </section>
+
+  <section class="model-note">
+    <h2>How radar-4 prices a protocol with no token</h2>
+    <p><code>implied = TVL &times; multiple &times; growth &times; maturity &times; breadth</code>, computed for a low, a base and a high from the same formula. No protocol&rsquo;s name is ever special-cased: every figure below is recomputed from the snapshot on every run.</p>
+    <ul>
+      <li><strong>Peer hygiene:</strong> a trading peer must record a token and be launch-comparable — not a CEX-category protocol, not a name beginning with an exchange&rsquo;s, and no whole word wrapped, staked or staking. An exchange token&rsquo;s market cap and a wrapped asset&rsquo;s mirror price are not evidence for a fresh launch, so they never price a row.</li>
+      <li><strong>Outlier trim:</strong> inside any peer set of 8 or more, multiples outside the set&rsquo;s own P10&ndash;P90 are set aside before quartiles are taken. This snapshot&rsquo;s raw global set reaches a 400&times; multiple; one such peer must not price forty protocols.</li>
+      <li><strong>Scale-matched weighting:</strong> a peer&rsquo;s weight for a row is <code>1 / (1 + |log&#8321;&#8320;(peer TVL / row TVL)|)</code> — full weight at the row&rsquo;s own scale, a tenth two decades away. Category P25, median and P75 are weighted quantiles, so a $60M protocol is priced by $10M&ndash;$600M launches, not by a $40B one.</li>
+      <li><strong>Shrinkage by effective peers:</strong> the effective count <code>nEff = (&Sigma;w)&sup2; / &Sigma;w&sup2;</code> replaces the raw count in <code>used = (nEff &times; category + 4 &times; global) / (nEff + 4)</code>, applied to each quartile and clamped to 0.03&ndash;1.50. A category with no peers is priced on the global weighted quartiles.</li>
+      <li><strong>Growth, concave:</strong> <code>1 + 0.55 &times; sign(g) &times; &radic;(|g| / 100)</code> with <code>g = clamp(7d change, &minus;60%, +200%)</code>. A one-week +4,448% spike (this snapshot has one) is weak evidence and must not mint rank; a steady +25% week counts for real. An unreported change counts as neutral — and widens the band instead.</li>
+      <li><strong>Maturity, log-age:</strong> <code>0.70 + 0.30 &times; ln(1 + age / 365) / ln 5</code>, capped at four years: the first tokenless year is the strongest survival evidence, the fourth adds little. An unknown listing date counts as 365 days — and widens the band.</li>
+      <li><strong>Breadth:</strong> <code>1 + min(chains &minus; 1, 9) &times; 0.01</code>.</li>
+      <li><strong>Uncertainty is shown, not hidden:</strong> each missing field (7d change, listing date) widens the row&rsquo;s band by 20% on both sides; the base value never moves. The evidence grade sums the row&rsquo;s effective peers (&ge;8 strong, &ge;3 fair) and its data completeness: A strong, B fair, C thin.</li>
+      <li><strong>Farm plans:</strong> fourteen plan archetypes — swap volume for DEXes, supply-and-borrow for lending, stake cycles for liquid staking, bridge round trips for bridges, network use for tokenless chains, and so on. Gas is priced per chain from a cost table (Ethereum $12 an action, Solana $0.05, Base $0.15, default $1), capital is sized by TVL tier, the holding period is a quarter of the protocol&rsquo;s tracked age held between 30 and 120 days, and one step in every plan is tailored to the row itself — a falling TVL, a one-week spike, an unknown listing date, a young record or a wide chain spread changes what to do first. Each plan&rsquo;s budget (total gas, active minutes, capital, hold) is summed from its own steps and printed above it.</li>
+    </ul>
+    <h3 class="catpr-h">The peer multiples radar-4 actually used</h3>
+    <p>Every category on the board, priced at the median TVL of its own board rows (the &ldquo;priced at&rdquo; column), with the peer count after hygiene and trimming and the effective peer count at that scale. A category with no trading peers is priced on the global weighted quartiles (median <span id="gq-med">—</span>x, P25 <span id="gq-p25">—</span>x, P75 <span id="gq-p75">—</span>x across <span id="gq-n">—</span> peers after trimming, <span id="gq-raw">—</span> before).</p>
+    <table class="board catpr">
+      <thead><tr><th>Category</th><th class="num">Priced at</th><th class="num">Peers</th><th class="num">Eff. peers</th><th class="num">P25 multiple</th><th class="num">Median (used)</th><th class="num">P75 multiple</th></tr></thead>
+      <tbody id="catpr-rows"></tbody>
+    </table>
+    <p class="fine">Source: DefiLlama snapshot as of <span id="src-date">—</span>. &ldquo;Records no token&rdquo; means the snapshot carries no market cap, CoinGecko id or symbol for the protocol — it is not proof that no token exists. Farm steps are a plan, not financial advice.</p>
+  </section>
+</main>
+<script src="../data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
